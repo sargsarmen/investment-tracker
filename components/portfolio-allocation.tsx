@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 // Sample data
 const sectorData = [
@@ -64,12 +65,14 @@ interface AllocationChartProps {
 }
 
 function AllocationChart({ data, title }: AllocationChartProps) {
+  const isMobile = useIsMobile()
+
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="text-xl font-bold mb-4">{title}</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-[300px]">
+          <div className={`h-[${isMobile ? "250px" : "300px"}]`}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -77,32 +80,38 @@ function AllocationChart({ data, title }: AllocationChartProps) {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
+                  outerRadius={isMobile ? 70 : 80}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                  label={isMobile ? undefined : ({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
                 >
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value: number) => [`${value.toFixed(2)}%`, "Allocation"]} />
-                <Legend />
+                <Legend
+                  layout={isMobile ? "horizontal" : "vertical"}
+                  verticalAlign={isMobile ? "bottom" : "middle"}
+                  align={isMobile ? "center" : "right"}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="space-y-2">
-            {data.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: item.color }}></div>
-                  <span>{item.name}</span>
+          {!isMobile && (
+            <div className="space-y-2">
+              {data.map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: item.color }}></div>
+                    <span>{item.name}</span>
+                  </div>
+                  <span className="font-medium">{item.value}%</span>
                 </div>
-                <span className="font-medium">{item.value}%</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

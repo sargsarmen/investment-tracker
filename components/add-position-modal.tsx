@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { fetchStockPrices } from "@/lib/api-service"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 // Define the schema with proper validation
 const formSchema = z.object({
@@ -75,6 +76,7 @@ export default function AddPositionModal({
 }: AddPositionModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const isEditing = !!editPosition
+  const isMobile = useIsMobile()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -163,7 +165,7 @@ export default function AddPositionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className={`${isMobile ? "w-[95vw] max-w-[95vw] p-4" : "sm:max-w-[425px]"}`}>
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Position" : "Add New Position"}</DialogTitle>
           <DialogDescription>
@@ -251,11 +253,11 @@ export default function AddPositionModal({
               />
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+            <DialogFooter className={isMobile ? "flex-col space-y-2" : ""}>
+              <Button type="button" variant="outline" onClick={onClose} className={isMobile ? "w-full" : ""}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className={isMobile ? "w-full" : ""}>
                 {isLoading ? (isEditing ? "Updating..." : "Adding...") : isEditing ? "Update Position" : "Add Position"}
               </Button>
             </DialogFooter>

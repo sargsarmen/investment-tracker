@@ -5,15 +5,7 @@ import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandLoading,
-} from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 export type ComboboxOption = {
@@ -49,67 +41,32 @@ export function Combobox({
   disabled = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const commandRef = React.useRef<HTMLDivElement>(null)
-
-  const handleOpenChange = (open: boolean) => {
-    setOpen(open)
-    onOpenChange?.(open)
-    if (!open) {
-      setSearchQuery("")
-    }
-  }
-
-  const handleSearch = (search: string) => {
-    setSearchQuery(search)
-    onSearch?.(search)
-  }
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (!onScrollEnd) return
-
-    const target = e.target as HTMLDivElement
-    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50
-
-    if (isAtBottom && !isLoading) {
-      onScrollEnd()
-    }
-  }
-
-  const selectedOption = options.find((option) => option.value === value)
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-          disabled={disabled}
-        >
-          {value && selectedOption ? selectedOption.label : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        <Button variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
+          {value ? options.find((framework) => framework.value === value)?.label : "Select framework..."}
+          <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command shouldFilter={false}>
-          <CommandInput placeholder="Search..." value={searchQuery} onValueChange={handleSearch} />
-          <CommandList ref={commandRef} onScroll={handleScroll}>
-            {isLoading && <CommandLoading>{loadingMessage}</CommandLoading>}
-            {options.length === 0 && !isLoading && <CommandEmpty>{emptyMessage}</CommandEmpty>}
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Search framework..." className="h-9" />
+          <CommandList>
+            <CommandEmpty>No framework found.</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {options.map((framework) => (
                 <CommandItem
-                  key={option.value}
-                  value={option.value}
+                  key={framework.value}
+                  value={framework.value}
                   onSelect={(currentValue) => {
-                    onValueChange(option.value)
+                    setValue(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-                  {option.label}
+                  {framework.label}
+                  <Check className={cn("ml-auto", value === framework.value ? "opacity-100" : "opacity-0")} />
                 </CommandItem>
               ))}
             </CommandGroup>

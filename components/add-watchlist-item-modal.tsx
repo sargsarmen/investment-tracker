@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { searchSP500Companies, getCompanyDetails } from "@/lib/api-service"
 import { useWatchlist, type WatchlistItem } from "@/context/watchlist-context"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const formSchema = z.object({
   symbol: z.string().min(1, "Symbol is required"),
@@ -44,6 +45,7 @@ export default function AddWatchlistItemModal({ isOpen, onClose, editItem = null
   const { toast } = useToast()
   const { addItem, updateItem } = useWatchlist()
   const isEditing = !!editItem
+  const isMobile = useIsMobile()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -206,7 +208,7 @@ export default function AddWatchlistItemModal({ isOpen, onClose, editItem = null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className={`${isMobile ? "w-[95vw] max-w-[95vw] p-4" : "sm:max-w-[425px]"}`}>
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Watchlist Item" : "Add to Watchlist"}</DialogTitle>
           <DialogDescription>
@@ -304,11 +306,11 @@ export default function AddWatchlistItemModal({ isOpen, onClose, editItem = null
               />
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+            <DialogFooter className={isMobile ? "flex-col space-y-2" : ""}>
+              <Button type="button" variant="outline" onClick={onClose} className={isMobile ? "w-full" : ""}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className={isMobile ? "w-full" : ""}>
                 {isLoading ? (isEditing ? "Updating..." : "Adding...") : isEditing ? "Update Item" : "Add to Watchlist"}
               </Button>
             </DialogFooter>

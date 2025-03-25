@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { fetchBenchmarkData, fetchBenchmarkPerformance } from "@/lib/api-service"
 import { usePortfolio } from "@/context/portfolio-context"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 type TimeRange = "1M" | "3M" | "6M" | "1Y" | "5Y" | "All"
 type BenchmarkType = "sp500" | "nasdaq" | "dow"
@@ -16,6 +17,7 @@ export default function PerformanceComparison() {
   const [chartData, setChartData] = useState<any[]>([])
   const [benchmarkPerformance, setBenchmarkPerformance] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +50,7 @@ export default function PerformanceComparison() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {(["1M", "3M", "6M", "1Y", "5Y", "All"] as TimeRange[]).map((range) => (
             <Button
@@ -86,7 +88,7 @@ export default function PerformanceComparison() {
         </div>
       </div>
 
-      <div className="h-[300px]">
+      <div className={`h-[${isMobile ? "250px" : "300px"}]`}>
         {isLoading || portfolioLoading ? (
           <div className="h-full w-full flex items-center justify-center bg-muted/20 animate-pulse rounded-md">
             <p className="text-muted-foreground">Loading chart data...</p>
@@ -97,16 +99,16 @@ export default function PerformanceComparison() {
               data={chartData}
               margin={{
                 top: 5,
-                right: 10,
-                left: 10,
+                right: isMobile ? 5 : 10,
+                left: isMobile ? 0 : 10,
                 bottom: 5,
               }}
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 10 }}
-                interval="preserveStartEnd"
+                tick={{ fontSize: isMobile ? 8 : 10 }}
+                interval={isMobile ? "preserveEnd" : "preserveStartEnd"}
                 tickFormatter={(value) => {
                   // For multi-year data, show abbreviated format
                   if (value.includes(" ")) {
@@ -116,12 +118,12 @@ export default function PerformanceComparison() {
                   return value
                 }}
               />
-              <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
+              <YAxis domain={["dataMin - 5", "dataMax + 5"]} width={isMobile ? 30 : 40} />
               <Tooltip
                 formatter={(value: number) => [`${value.toFixed(2)}`, "Value"]}
                 labelFormatter={(label) => `Date: ${label}`}
               />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: isMobile ? "10px" : "12px" }} />
               <Line
                 type="monotone"
                 dataKey="portfolio"

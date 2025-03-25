@@ -13,6 +13,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Investment Tracker",
   description: "Track and analyze your personal investments",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
     generator: 'v0.dev'
 }
 
@@ -27,7 +28,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
           <PortfolioProvider>
             <WatchlistProvider>
-              <div className="flex h-screen overflow-hidden">
+              <div className="flex flex-col md:flex-row h-screen overflow-hidden">
                 <Sidebar />
                 <div className="flex flex-col flex-1 overflow-hidden">
                   <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
