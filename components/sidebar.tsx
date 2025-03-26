@@ -48,7 +48,7 @@ export default function Sidebar() {
           href={route.href}
           className={cn(
             "flex items-center text-sm group py-3 px-3 rounded-md hover:bg-accent",
-            pathname === route.href ? "bg-accent" : "transparent",
+            pathname === route.href ? "bg-gray-200" : "transparent",
           )}
         >
           <route.icon className={cn("h-5 w-5 mr-3", route.color)} />

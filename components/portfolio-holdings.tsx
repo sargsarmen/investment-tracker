@@ -118,7 +118,7 @@ export default function PortfolioHoldings() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-red-600" onClick={() => setPositionToRemove(holding.id)}>
                           <Trash className="h-4 w-4 mr-2" />
-                          Remove Position
+                          Remove
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -241,7 +241,7 @@ export default function PortfolioHoldings() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600" onClick={() => setPositionToRemove(holding.id)}>
                             <Trash className="h-4 w-4 mr-2" />
-                            Remove Position
+                            Remove
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
