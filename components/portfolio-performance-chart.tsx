@@ -107,7 +107,7 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
                 height={isMobile ? 36 : 20}
                 wrapperStyle={{
                   fontSize: isMobile ? "10px" : "12px",
-                  paddingTop: isMobile ? "10px" : "0",
+                  paddingTop: isMobile ? "2px" : "0",
                   bottom: isMobile ? "0px" : "5px",
                 }}
                 iconSize={isMobile ? 8 : 10}

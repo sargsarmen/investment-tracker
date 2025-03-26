@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { fetchBenchmarkData, fetchBenchmarkPerformance } from "@/lib/api-service"
 import { usePortfolio } from "@/context/portfolio-context"
 import { useIsMobile } from "@/hooks/use-mobile"
+import clsx from "clsx"
 
 type TimeRange = "1M" | "3M" | "6M" | "1Y" | "5Y" | "All"
 type BenchmarkType = "sp500" | "nasdaq" | "dow"
@@ -58,6 +59,7 @@ export default function PerformanceComparison() {
               variant={timeRange === range ? "default" : "outline"}
               size="sm"
               onClick={() => setTimeRange(range)}
+              className={clsx({ "hidden sm:block": range === 'All' })}
             >
               {range}
             </Button>
@@ -88,7 +90,7 @@ export default function PerformanceComparison() {
         </div>
       </div>
 
-      <div className={`h-[${isMobile ? "250px" : "300px"}]`}>
+      <div className={isMobile ? "h-[280px]" : "h-[300px]"}>
         {isLoading || portfolioLoading ? (
           <div className="h-full w-full flex items-center justify-center bg-muted/20 animate-pulse rounded-md">
             <p className="text-muted-foreground">Loading chart data...</p>
@@ -99,9 +101,9 @@ export default function PerformanceComparison() {
               data={chartData}
               margin={{
                 top: 5,
-                right: isMobile ? 5 : 10,
+                right: isMobile ? 0 : 10,
                 left: isMobile ? 0 : 10,
-                bottom: 5,
+                bottom: isMobile ? 0 : 5,
               }}
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -118,12 +120,34 @@ export default function PerformanceComparison() {
                   return value
                 }}
               />
-              <YAxis domain={["dataMin - 5", "dataMax + 5"]} width={isMobile ? 30 : 40} />
+              <YAxis
+                domain={["dataMin - 5", "dataMax + 5"]}
+                width={isMobile ? 35 : 40}
+                tick={{ fontSize: isMobile ? 8 : 10 }}
+                tickFormatter={(value) => {
+                  if (isMobile) {
+                    return value.toFixed(0)
+                  }
+                  return value.toFixed(2)
+                }}
+              />
               <Tooltip
                 formatter={(value: number) => [`${value.toFixed(2)}`, "Value"]}
                 labelFormatter={(label) => `Date: ${label}`}
+                contentStyle={{ fontSize: isMobile ? "10px" : "12px" }}
               />
-              <Legend wrapperStyle={{ fontSize: isMobile ? "10px" : "12px" }} />
+              <Legend
+                wrapperStyle={{
+                  fontSize: isMobile ? "9px" : "12px",
+                  paddingTop: isMobile ? "0px" : "0px",
+                  bottom: isMobile ? 0 : 5,
+                }}
+                iconSize={isMobile ? 8 : 10}
+                iconType="circle"
+                layout={isMobile ? "horizontal" : "horizontal"}
+                verticalAlign="bottom"
+                align="center"
+              />
               <Line
                 type="monotone"
                 dataKey="portfolio"
@@ -131,7 +155,7 @@ export default function PerformanceComparison() {
                 stroke="#8884d8"
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 8 }}
+                activeDot={{ r: isMobile ? 6 : 8 }}
               />
               {benchmarks.includes("sp500") && (
                 <Line
