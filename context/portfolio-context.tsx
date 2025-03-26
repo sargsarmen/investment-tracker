@@ -110,7 +110,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
   const [holdings, setHoldings] = useState<Position[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [removedPositions, setRemovedPositions] = useState<Record<string, { position: Position, index: number }>>({})
+  const [removedPositions, setRemovedPositions] = useState<Record<string, { position: Position; index: number }>>({})
   const [isInitialized, setIsInitialized] = useState(false)
   const restorePositionRef = useRef<Function>(undefined)
 
@@ -126,18 +126,28 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
   const refreshPortfolio = async () => {
     try {
       setIsRefreshing(true)
-      // If we have no holdings yet, use the initial data
-      const positionsToUpdate = holdings.length > 0 ? holdings : initialHoldings
-      const updatedPortfolio = await fetchPortfolioWithPrices(positionsToUpdate)
-      const portfolioWithAllocations = calculateAllocations(updatedPortfolio)
-      setHoldings(portfolioWithAllocations)
+
+      // Only use initialHoldings when we're initializing for the first time
+      // For refresh actions, only update existing holdings
+      if (holdings.length === 0 && !isInitialized) {
+        // First load - use initial data
+        const updatedPortfolio = await fetchPortfolioWithPrices(initialHoldings)
+        const portfolioWithAllocations = calculateAllocations(updatedPortfolio)
+        setHoldings(portfolioWithAllocations)
+      } else if (holdings.length > 0) {
+        // Refresh existing holdings only
+        const updatedPortfolio = await fetchPortfolioWithPrices(holdings)
+        const portfolioWithAllocations = calculateAllocations(updatedPortfolio)
+        setHoldings(portfolioWithAllocations)
+      }
     } catch (error) {
       toast.error("Failed to refresh portfolio", {
         description: "There was an error fetching current prices. Please try again.",
       })
       console.error("Error refreshing portfolio:", error)
+
       // If this is the first load and it failed, use the initial data without prices
-      if (holdings.length === 0) {
+      if (holdings.length === 0 && !isInitialized) {
         setHoldings(initialHoldings)
       }
     } finally {
@@ -179,7 +189,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
 
     if (!toRestore) return
 
-    const { position, index } = toRestore;
+    const { position, index } = toRestore
 
     try {
       // Get current price for the removed position
@@ -188,7 +198,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
 
       // Restore the position
       setHoldings((prev) => {
-        const restoredHoldings = [...prev];
+        const restoredHoldings = [...prev]
         if (index !== undefined) {
           restoredHoldings.splice(index, 0, updatedPosition)
         } else {
@@ -202,7 +212,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     } catch (error) {
       // If there's an error, still restore the position but with old data
       setHoldings((prev) => {
-        const restoredHoldings = [...prev];
+        const restoredHoldings = [...prev]
         if (index !== undefined) {
           restoredHoldings.splice(index, 0, position)
         } else {
@@ -225,7 +235,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     }
   }
 
-  restorePositionRef.current = restorePosition;
+  restorePositionRef.current = restorePosition
 
   const removePosition = (id: string) => {
     const positionToRemove = holdings.find((item) => item.id === id)
