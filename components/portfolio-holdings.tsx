@@ -17,8 +17,8 @@ import { Badge } from "@/components/ui/badge"
 import AddPositionModal from "./add-position-modal"
 import ConfirmDialog from "./confirm-dialog"
 import { usePortfolio } from "@/context/portfolio-context"
-import { useMobile } from "@/hooks/use-mobile"
 import { Card, CardContent } from "@/components/ui/card"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function PortfolioHoldings() {
   const { holdings, isLoading, isRefreshing, addPosition, updatePosition, removePosition, refreshPortfolio } =
@@ -28,7 +28,7 @@ export default function PortfolioHoldings() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingPosition, setEditingPosition] = useState<any | null>(null)
   const [positionToRemove, setPositionToRemove] = useState<string | null>(null)
-  const isMobile = useMobile()
+  const isMobile = useIsMobile()
 
   const filteredHoldings = holdings.filter(
     (holding) =>
