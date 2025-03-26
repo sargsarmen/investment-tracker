@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode, useRef } from "react"
 import { toast } from "sonner"
 
 // Initial watchlist items
@@ -98,7 +98,6 @@ interface WatchlistContextType {
   addItem: (item: WatchlistItem) => void
   updateItem: (item: WatchlistItem) => void
   removeItem: (id: string) => void
-  removedItems: Record<string, WatchlistItem>
   restoreItem: (id: string) => void
 }
 
@@ -119,8 +118,9 @@ interface WatchlistProviderProps {
 export function WatchlistProvider({ children }: WatchlistProviderProps) {
   const [items, setItems] = useState<WatchlistItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [removedItems, setRemovedItems] = useState<Record<string, WatchlistItem>>({})
+  const [removedItems, setRemovedItems] = useState<Record<string, { item: WatchlistItem, index: number }>>({})
   const [isInitialized, setIsInitialized] = useState(false)
+  const restoreRef = useRef<Function>(undefined)
 
   // Initialize watchlist on first load
   useEffect(() => {
@@ -139,6 +139,37 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
     setItems((prev) => prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)))
   }
 
+  const restoreItem = (id: string) => {
+    const toRestore = removedItems[id]
+
+    if (!toRestore) return
+
+    const { item, index } = toRestore;
+
+    // Restore the item
+    setItems((prev) => {
+      const copyItems = [...prev];
+      if (index !== undefined) {
+        copyItems.splice(index, 0, item)
+      } else {
+        copyItems.push(item)
+      }
+
+      return copyItems
+    })
+
+    // Remove from the removed items record
+    setRemovedItems((prev) => {
+      const newRemoved = { ...prev }
+      delete newRemoved[id]
+      return newRemoved
+    })
+
+    toast.success(`${item.symbol} restored to watchlist`)
+  }
+
+  restoreRef.current = restoreItem;
+
   const removeItem = (id: string) => {
     const itemToRemove = items.find((item) => item.id === id)
 
@@ -151,7 +182,7 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
     // Store the removed item for potential restoration
     setRemovedItems((prev) => ({
       ...prev,
-      [id]: itemToRemove,
+      [id]: { item: itemToRemove, index: items.findIndex((item) => item.id === id) },
     }))
 
     // Show toast with undo functionality
@@ -159,27 +190,9 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
       description: `Current price: $${itemToRemove.price.toFixed(2)}`,
       action: {
         label: "Undo",
-        onClick: () => restoreItem(id),
+        onClick: () => restoreRef.current?.(id),
       },
     })
-  }
-
-  const restoreItem = (id: string) => {
-    const itemToRestore = removedItems[id]
-
-    if (!itemToRestore) return
-
-    // Restore the item
-    setItems((prev) => [...prev, itemToRestore])
-
-    // Remove from the removed items record
-    setRemovedItems((prev) => {
-      const newRemoved = { ...prev }
-      delete newRemoved[id]
-      return newRemoved
-    })
-
-    toast.success(`${itemToRestore.symbol} restored to watchlist`)
   }
 
   const value = {
@@ -188,7 +201,6 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
     addItem,
     updateItem,
     removeItem,
-    removedItems,
     restoreItem,
   }
 

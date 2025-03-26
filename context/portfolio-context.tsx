@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode, useRef } from "react"
 import { fetchPortfolioWithPrices, calculateAllocations } from "@/lib/api-service"
 import { toast } from "sonner"
 
@@ -89,7 +89,6 @@ interface PortfolioContextType {
   updatePosition: (position: Position) => void
   removePosition: (id: string) => void
   refreshPortfolio: () => Promise<void>
-  removedPositions: Record<string, Position>
   restorePosition: (id: string) => void
 }
 
@@ -111,8 +110,9 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
   const [holdings, setHoldings] = useState<Position[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [removedPositions, setRemovedPositions] = useState<Record<string, Position>>({})
+  const [removedPositions, setRemovedPositions] = useState<Record<string, { position: Position, index: number }>>({})
   const [isInitialized, setIsInitialized] = useState(false)
+  const restorePositionRef = useRef<Function>(undefined)
 
   // Initialize portfolio on first load
   useEffect(() => {
@@ -174,6 +174,59 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     }
   }
 
+  const restorePosition = async (id: string) => {
+    const toRestore = removedPositions[id]
+
+    if (!toRestore) return
+
+    const { position, index } = toRestore;
+
+    try {
+      // Get current price for the removed position
+      const updatedPositions = await fetchPortfolioWithPrices([position])
+      const updatedPosition = updatedPositions[0]
+
+      // Restore the position
+      setHoldings((prev) => {
+        const restoredHoldings = [...prev];
+        if (index !== undefined) {
+          restoredHoldings.splice(index, 0, updatedPosition)
+        } else {
+          restoredHoldings.push(updatedPosition)
+        }
+
+        return calculateAllocations(restoredHoldings)
+      })
+
+      toast.success(`${position.symbol} restored to portfolio`)
+    } catch (error) {
+      // If there's an error, still restore the position but with old data
+      setHoldings((prev) => {
+        const restoredHoldings = [...prev];
+        if (index !== undefined) {
+          restoredHoldings.splice(index, 0, position)
+        } else {
+          restoredHoldings.push(position)
+        }
+
+        return calculateAllocations(restoredHoldings)
+      })
+
+      // Remove from the removed positions record
+      setRemovedPositions((prev) => {
+        const newRemoved = { ...prev }
+        delete newRemoved[id]
+        return newRemoved
+      })
+
+      toast.success(`${position.symbol} restored to portfolio`, {
+        description: "Price data may be outdated",
+      })
+    }
+  }
+
+  restorePositionRef.current = restorePosition;
+
   const removePosition = (id: string) => {
     const positionToRemove = holdings.find((item) => item.id === id)
 
@@ -187,7 +240,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     // Store the removed position for potential restoration
     setRemovedPositions((prev) => ({
       ...prev,
-      [id]: positionToRemove,
+      [id]: { position: positionToRemove, index: holdings.findIndex((item) => item.id === id) },
     }))
 
     // Show toast with undo functionality
@@ -195,53 +248,9 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
       description: `${positionToRemove.shares} shares at $${positionToRemove.avgCost.toFixed(2)}`,
       action: {
         label: "Undo",
-        onClick: () => restorePosition(id),
+        onClick: () => restorePositionRef.current?.(id),
       },
     })
-  }
-
-  const restorePosition = async (id: string) => {
-    const positionToRestore = removedPositions[id]
-
-    if (!positionToRestore) return
-
-    try {
-      // Get current price for the removed position
-      const updatedPositions = await fetchPortfolioWithPrices([positionToRestore])
-      const updatedPosition = updatedPositions[0]
-
-      // Restore the position
-      setHoldings((prev) => {
-        const restoredHoldings = [...prev, updatedPosition]
-        return calculateAllocations(restoredHoldings)
-      })
-
-      // Remove from the removed positions record
-      setRemovedPositions((prev) => {
-        const newRemoved = { ...prev }
-        delete newRemoved[id]
-        return newRemoved
-      })
-
-      toast.success(`${positionToRestore.symbol} restored to portfolio`)
-    } catch (error) {
-      // If there's an error, still restore the position but with old data
-      setHoldings((prev) => {
-        const restoredHoldings = [...prev, positionToRestore]
-        return calculateAllocations(restoredHoldings)
-      })
-
-      // Remove from the removed positions record
-      setRemovedPositions((prev) => {
-        const newRemoved = { ...prev }
-        delete newRemoved[id]
-        return newRemoved
-      })
-
-      toast.success(`${positionToRestore.symbol} restored to portfolio`, {
-        description: "Price data may be outdated",
-      })
-    }
   }
 
   const value = {
@@ -252,7 +261,6 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     updatePosition,
     removePosition,
     refreshPortfolio,
-    removedPositions,
     restorePosition,
   }
 
