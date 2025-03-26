@@ -107,7 +107,7 @@ export default function Sidebar() {
   return (
     <div className="flex flex-col h-full space-y-4 py-4 bg-muted/40 border-r">
       <div className="px-3 py-2">
-        <Link href="/portfolio" className="flex items-center pl-3 mb-6">
+        <Link href="/" className="flex items-center pl-3 mb-6">
           <h1 className="text-xl font-bold">Investment Tracker</h1>
         </Link>
         {navigationLinks}
