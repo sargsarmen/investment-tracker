@@ -1,12 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import Sidebar from "@/components/sidebar"
-import { SonnerProvider } from "@/components/sonner-provider"
+import { Toaster as SonnerToaster } from "sonner"
 import { PortfolioProvider } from "@/context/portfolio-context"
 import { WatchlistProvider } from "@/context/watchlist-context"
+import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
   title: "Investment Tracker",
   description: "Track and analyze your personal investments",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -25,24 +24,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
-          <PortfolioProvider>
-            <WatchlistProvider>
-              <div className="flex flex-col md:flex-row h-screen overflow-hidden">
-                <Sidebar />
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
-                </div>
+        <PortfolioProvider>
+          <WatchlistProvider>
+            <div className="flex flex-col md:flex-row h-screen overflow-hidden">
+              <Sidebar />
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
               </div>
-              <SonnerProvider />
-            </WatchlistProvider>
-          </PortfolioProvider>
-        </ThemeProvider>
+            </div>
+            <SonnerToaster
+              position="bottom-right"
+              toastOptions={{
+                duration: 5000,
+                className: "sonner-toast",
+                descriptionClassName: "sonner-description",
+              }}
+            />
+          </WatchlistProvider>
+        </PortfolioProvider>
       </body>
     </html>
   )
 }
-
-
-
-import './globals.css'

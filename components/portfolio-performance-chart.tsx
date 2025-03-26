@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { generatePortfolioHistoricalData } from "@/lib/api-service"
 import { usePortfolio } from "@/context/portfolio-context"
+import { useIsMobile } from "@/hooks/use-mobile"
+import clsx from "clsx"
 
 type TimeRange = "1M" | "3M" | "6M" | "1Y" | "5Y" | "All"
 
@@ -18,6 +20,7 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
   const [showBenchmark, setShowBenchmark] = useState(true)
   const [chartData, setChartData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +50,7 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
               variant={timeRange === range ? "default" : "outline"}
               size="sm"
               onClick={() => setTimeRange(range)}
+              className={clsx({ "hidden sm:block": range === 'All' })}
             >
               {range}
             </Button>
@@ -57,7 +61,7 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
         </Button>
       </div>
 
-      <div className="h-[300px]">
+      <div className={isMobile ? "h-[280px]" : "h-[300px]"}>
         {isLoading || portfolioLoading ? (
           <div className="h-full w-full flex items-center justify-center bg-muted/20 animate-pulse rounded-md">
             <p className="text-muted-foreground">Loading chart data...</p>
@@ -68,13 +72,18 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
               data={chartData}
               margin={{
                 top: 5,
-                right: 10,
-                left: 10,
-                bottom: 5,
+                right: isMobile ? 0 : 10,
+                left: isMobile ? 0 : 10,
+                bottom: isMobile ? 0 : 5,
               }}
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <XAxis dataKey="date" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: isMobile ? 10 : 12 }}
+                tickMargin={isMobile ? 5 : 0}
+                interval={isMobile ? "preserveEnd" : 0}
+              />
               <YAxis
                 tickFormatter={(value) => {
                   if (value >= 1000000) {
@@ -85,12 +94,25 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
                   return `$${value.toFixed(0)}`
                 }}
                 domain={["dataMin - 1000", "dataMax + 1000"]}
+                width={isMobile ? 40 : 60}
+                tick={{ fontSize: isMobile ? 10 : 12 }}
               />
               <Tooltip
                 formatter={(value: number) => [`$${value.toFixed(2)}`, "Value"]}
                 labelFormatter={(label) => `Date: ${label}`}
+                contentStyle={{ fontSize: isMobile ? "10px" : "12px" }}
               />
-              <Legend />
+              <Legend
+                verticalAlign={isMobile ? "bottom" : "bottom"}
+                height={isMobile ? 36 : 20}
+                wrapperStyle={{
+                  fontSize: isMobile ? "10px" : "12px",
+                  paddingTop: isMobile ? "10px" : "0",
+                  bottom: isMobile ? "0px" : "5px",
+                }}
+                iconSize={isMobile ? 8 : 10}
+                iconType="circle"
+              />
               <Line
                 type="monotone"
                 dataKey="value"
@@ -98,7 +120,7 @@ export default function PortfolioPerformanceChart({ detailed = false }: Portfoli
                 stroke="#8884d8"
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 8 }}
+                activeDot={{ r: isMobile ? 6 : 8 }}
               />
               {showBenchmark && (
                 <Line

@@ -72,7 +72,7 @@ export default function Sidebar() {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] sm:w-[300px] p-0">
+            <SheetContent side="left" className="w-[240px] sm:w-[300px] p-0" hideCloseButton>
               <div className="flex flex-col h-full py-6">
                 <div className="px-6 mb-6">
                   <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>

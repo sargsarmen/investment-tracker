@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { searchSP500Companies, getCompanyDetails } from "@/lib/api-service"
 import { useWatchlist, type WatchlistItem } from "@/context/watchlist-context"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { toast } from "sonner"
 
 const formSchema = z.object({
   symbol: z.string().min(1, "Symbol is required"),
@@ -42,7 +42,6 @@ export default function AddWatchlistItemModal({ isOpen, onClose, editItem = null
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [isSearching, setIsSearching] = useState(false)
-  const { toast } = useToast()
   const { addItem, updateItem } = useWatchlist()
   const isEditing = !!editItem
   const isMobile = useIsMobile()
@@ -145,10 +144,8 @@ export default function AddWatchlistItemModal({ isOpen, onClose, editItem = null
       }
     } catch (error) {
       console.error("Error fetching company details:", error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch company details. Please try again.",
-        variant: "destructive",
+      toast("Error", {
+        description: "Failed to fetch company details. Please try again."
       })
     } finally {
       setIsLoading(false)
@@ -189,14 +186,12 @@ export default function AddWatchlistItemModal({ isOpen, onClose, editItem = null
 
       if (isEditing) {
         updateItem(itemData)
-        toast({
-          title: "Watchlist item updated",
+        toast("Watchlist item updated", {
           description: `Updated ${values.symbol.toUpperCase()} in your watchlist.`,
         })
       } else {
         addItem(itemData)
-        toast({
-          title: "Watchlist item added",
+        toast("Watchlist item added", {
           description: `Added ${values.symbol.toUpperCase()} to your watchlist.`,
         })
       }
